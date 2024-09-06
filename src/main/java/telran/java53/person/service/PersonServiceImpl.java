@@ -1,5 +1,7 @@
 package telran.java53.person.service;
 
+import java.time.LocalDate;
+
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -10,6 +12,7 @@ import telran.java53.person.dto.AddressDto;
 import telran.java53.person.dto.CityPopulationDto;
 import telran.java53.person.dto.PersonDto;
 import telran.java53.person.dto.exception.PersonNotFoundException;
+import telran.java53.person.model.Address;
 import telran.java53.person.model.Person;
 
 @Service
@@ -34,40 +37,51 @@ public class PersonServiceImpl implements PersonService {
 		return modelMapper.map(person, PersonDto.class);
 	}
 
+	@Transactional
 	@Override
 	public PersonDto removePerson(Integer id) {
-		// TODO Auto-generated method stub
-		return null;
+		Person person = personRepository.findById(id).orElseThrow(() -> new PersonNotFoundException());
+		personRepository.delete(person);
+		return modelMapper.map(person, PersonDto.class);
 	}
 
+	@Transactional
 	@Override
 	public PersonDto updatePersonName(Integer id, String name) {
-		// TODO Auto-generated method stub
-		return null;
+		Person person = personRepository.findById(id).orElseThrow(() -> new PersonNotFoundException());
+		person.setName(name);
+		return modelMapper.map(person, PersonDto.class);
 	}
 
+	@Transactional
 	@Override
 	public PersonDto updatePersonAddress(Integer id, AddressDto addressDto) {
-		// TODO Auto-generated method stub
-		return null;
+		Person person = personRepository.findById(id).orElseThrow(() -> new PersonNotFoundException());
+		person.setAddress(modelMapper.map(addressDto, Address.class));
+		return modelMapper.map(person, PersonDto.class);
 	}
 
 	@Override
 	public PersonDto[] findPersonsByCity(String city) {
-		// TODO Auto-generated method stub
-		return null;
+		return personRepository.findByAddressCityIgnoreCase(city).stream()
+				.map(p -> modelMapper.map(p, PersonDto.class))
+				.toArray(PersonDto[]::new);
 	}
 
 	@Override
 	public PersonDto[] findPersonsByName(String name) {
-		// TODO Auto-generated method stub
-		return null;
+		return personRepository.findByNameIgnoreCase(name).stream()
+				.map(p -> modelMapper.map(p, PersonDto.class))
+				.toArray(PersonDto[]::new);
 	}
 
 	@Override
 	public PersonDto[] findPersonsBetweenAge(Integer minAge, Integer maxAge) {
-		// TODO Auto-generated method stub
-		return null;
+		LocalDate from = LocalDate.now().minusYears(maxAge);
+		LocalDate to = LocalDate.now().minusYears(minAge);
+		return personRepository.findByBirthDateBetween(from, to).stream()
+				.map(p -> modelMapper.map(p, PersonDto.class))
+				.toArray(PersonDto[]::new);
 	}
 
 	@Override
